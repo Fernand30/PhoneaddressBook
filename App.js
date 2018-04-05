@@ -16,7 +16,9 @@ import {
   TextInput,
   SafeAreaView,
   ScrollView,
-  BackHandler
+  BackHandler,
+  Modal,
+  Alert
 } from 'react-native';
 
 var Contacts = require('react-native-contacts')
@@ -33,7 +35,9 @@ export default class App extends Component<Props> {
       keys: [],
       contacts:[],
       refreshing: false,
-      updated: false
+      updated: false,
+      deltemodalVisible: false,
+      item: {}
     }
   }
 
@@ -98,27 +102,19 @@ export default class App extends Component<Props> {
   addContact(){
     var newPerson = {
       emailAddresses: [{
-        label: "work",
-        email: "mrniet@example.com",
+        label: "",
+        email: "",
       }],
-      familyName: "Nietzsche",
-      givenName: "Friedrich",
+      familyName: "",
+      givenName: "",
     }
 
-    Contacts.addContact(newPerson, (err) => { /*...*/ })
+    Contacts.openContactForm(newPerson, (err) => { /*...*/ })
     this.contactList(this.state.filter)
   }
 
-  openContact(){
-    var newPerson = {
-      
-    }
-
-    Contacts.openContactForm(newPerson, (err) => { alert(err) })
-  }
-
   search(text){
-    //this.setState({filter:text, data:data})
+    this.setState({filter:text})
     this.contactList(text)
   }
 
@@ -240,6 +236,43 @@ export default class App extends Component<Props> {
       )
   }
 
+  contactEdit=(item)=>{
+
+    //  Contacts.getAll( (err, contacts) => {
+    //   //update the first record
+    //   let someRecord = contacts[0]
+    //   someRecord.emailAddresses.push({
+    //     label: "junk",
+    //     email: "mrniet+junkmail@test.com",
+    //   })
+    //   Contacts.updateContact(someRecord, (err) => { /*...*/ })
+
+    //   //delete the second record
+    //   Contacts.deleteContact(item, (err) => { /*...*/ })
+    //   this.contactList(this.state.filter)
+    // })
+
+  }
+
+  deleteContact(item){
+    flag = 0
+    Alert.alert(
+      'alert',
+      'Are you sure?',
+      [
+        {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+        {text: 'OK', onPress: () => this.realdelete(item)},
+      ],
+      { cancelable: false }
+    )
+  }
+
+  realdelete(item){
+    Contacts.deleteContact(item, (err) => {  })
+    this.search(this.state.filter)
+  }
+     
+
   render() {
     data = this.state.data
     keys = this.state.keys
@@ -266,23 +299,30 @@ export default class App extends Component<Props> {
       return(
         <View style={styles.eachView} key = {items.recordID}>
           <View>
-            <TouchableOpacity onPress={()=>that.expend(items.recordID)}>
+            <TouchableOpacity onLongPress={()=>that.deleteContact(items)} onPress={()=>that.expend(items.recordID)}>
               <Text style={styles.nametext}>{items.givenName+' '+items.familyName}</Text>
             </TouchableOpacity>
             
-            {/*(keys.indexOf(items.recordID)!=-1)?<FlatList
-                        removeClippedSubviews={false}
-                        data={phoneNumbers}
-                        showsVerticalScrollIndicator={false}
-                        keyExtractor={(item, index) => index}
-                        renderItem={({item}) => that._renderNumber(item,items)}
-                      />:null*/}
             {(keys.indexOf(items.recordID)!=-1)? subjson : null}
             
           </View>
         </View>
       )
     }) 
+
+    deleteModal =
+      <Modal
+          animationType="slide"
+          transparent={true}
+          visible={this.state.deltemodalVisible}
+          onRequestClose={() => {
+            alert('Modal has been closed.');
+          }}>
+          <View style={{flex:1, alignItems: 'center', justifyContent:'center', backgroundColor:'red'}}>
+
+          </View>
+      </Modal>    
+
     return (
     
       <SafeAreaView style={styles.container}>
@@ -291,7 +331,9 @@ export default class App extends Component<Props> {
         <View style={styles.rowView}>
           <Text style={styles.group} >Group</Text>
           <TextInput underlineColorAndroid='transparent' placeholder= 'search' onChangeText= {(text)=>this.search(text)} style={styles.textinput}/>
-          <TouchableOpacity onPress={()=>{this.openContact()}} style={styles.plusbutton}>
+          <TouchableOpacity 
+            onPress={()=>{this.addContact()}} 
+            style={styles.plusbutton}>
             <Text style={styles.plus} >+</Text>
           </TouchableOpacity>
         </View>
@@ -301,6 +343,7 @@ export default class App extends Component<Props> {
           {jsonData}
         </ScrollView>
       </View>
+      {deleteModal}
       </SafeAreaView>
     );
   }
