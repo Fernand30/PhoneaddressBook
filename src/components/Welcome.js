@@ -56,6 +56,7 @@ export default class App extends Component<Props> {
       emaillabels: [],
       emailnumbers: [],
       emailAddresses:[],
+      note:''
     }
   }
 
@@ -80,7 +81,7 @@ export default class App extends Component<Props> {
         if(err === 'denied'){
           // error
         } else {
-          //alert(JSON.stringify(contacts[0]))
+          alert(JSON.stringify(contacts[0]))
           data = contacts
           keys = {"keys": this.state.keys}
           data.push(keys)
@@ -173,6 +174,25 @@ export default class App extends Component<Props> {
       )
   }
 
+  clear(){
+    this.setState({ 
+      editmodalVisible: false, 
+      addmodalVisible: false, 
+      familyName:'', 
+      givenName:'', 
+      phoneNumbers:[], 
+      emailAddresses:[],
+      labels:[],
+      numbers:[],
+      emaillabels:[], 
+      emailnumbers:[],
+      buttonarray:[0],
+      emailarray: [0],
+      buttonarray:[0],
+      emailbuttonarray:[0],
+      note:''
+    })
+  }
 
   expend(key){
     temdata = []
@@ -251,25 +271,13 @@ export default class App extends Component<Props> {
       emailAddresses: emailAddresses,
       familyName: this.state.familyName,
       givenName: this.state.givenName,
-      phoneNumbers:phoneNumbers
+      phoneNumbers:phoneNumbers,
+      note: this.state.note
     }
-
-    this.setState({ 
-      addmodalVisible: false, 
-      familyName:'', 
-      givenName:'', 
-      phoneNumbers:[], 
-      emailAddresses:[],
-      labels:[],
-      number:[],
-      buttonarray:[0],
-      emaillabels:[],
-      emailnumber:[],
-      emailbuttonarray:[0]
-    })
 
     Contacts.addContact(newPerson, (err)=>{ })
     this.search(this.state.filter)
+    this.clear()
   }
 
   editContact=()=>{
@@ -297,24 +305,11 @@ export default class App extends Component<Props> {
     item.phoneNumbers = phoneNumbers
     item.givenName = this.state.givenName
     item.familyName = this.state.familyName
+    item.note = this.state.note
     
     Contacts.updateContact(item, (err) => { /*...*/ })
     this.search(this.state.filter)
-
-    this.setState({ 
-      editmodalVisible: false, 
-      familyName:'', 
-      givenName:'', 
-      phoneNumbers:[], 
-      emailAddresses:[],
-      labels:[],
-      numbers:[],
-      emaillabels:[], 
-      emailnumbers:[],
-      buttonarray:[0],
-      emailarray: [0]
-    })
-
+    this.clear()
   }
 
   editModal(item){
@@ -346,7 +341,8 @@ export default class App extends Component<Props> {
       labels: labels,
       numbers: numbers,
       emaillabels: emaillabels,
-      emailnumbers: emailnumbers
+      emailnumbers: emailnumbers,
+      note: item.note
     })
   }
 
@@ -548,7 +544,7 @@ emailbuttonjson = emailbuttonarray.map(function(item){
       <TextInput 
         underlineColorAndroid='transparent' style={styles.labelTextinput}  
         onChangeText={(text)=>that.addEmailLabel(item,text)}/>
-      <TextInput keyboardType='numeric' returnKeyType="done" 
+      <TextInput
         underlineColorAndroid='transparent' style={styles.addTextinput}  
         onChangeText={(text)=>that.addEmailAddress(item,text)}/>
     </View>
@@ -593,7 +589,7 @@ emailbuttonjson = emailbuttonarray.map(function(item){
           <TextInput 
             underlineColorAndroid='transparent' style={styles.labelTextinput}  
             onChangeText={(text)=>that.addEmailLabel(index,text)} value={item.label}/>
-          <TextInput keyboardType='numeric' returnKeyType="done" 
+          <TextInput returnKeyType="done" 
             underlineColorAndroid='transparent' style={styles.addTextinput}  
             onChangeText={(text)=>that.addEmailAddress(index,text)} value={item.email}/>
         </View>
@@ -613,11 +609,13 @@ emailbuttonjson = emailbuttonarray.map(function(item){
               <ScrollView showsVerticalScrollIndicator={false} style={{flex:1}}>
                 <View style={styles.addRowView}>
                   <Text style={styles.addLabel}>FamilyName:</Text>
-                  <TextInput underlineColorAndroid='transparent' style={styles.addTextinput} onChangeText={(text)=>this.setState({familyName: text})}/>
+                  <TextInput underlineColorAndroid='transparent' 
+                    style={styles.addTextinput} onChangeText={(text)=>this.setState({familyName: text})}/>
                 </View>
                 <View style={styles.addRowView}>
                   <Text style={styles.addLabel}>GivenName:</Text>
-                  <TextInput underlineColorAndroid='transparent' style={styles.addTextinput}  onChangeText={(text)=>this.setState({givenName: text})}/>
+                  <TextInput underlineColorAndroid='transparent' 
+                    style={styles.addTextinput}  onChangeText={(text)=>this.setState({givenName: text})}/>
                 </View>
                 <Text style={styles.phonenumbers}>Phone Numbers:</Text>
 
@@ -639,16 +637,22 @@ emailbuttonjson = emailbuttonarray.map(function(item){
                   </View>
                   <Text style={styles.phone}>add email</Text>
                 </TouchableOpacity>
-
+                <View style={[styles.addRowView,{marginTop:20}]}>
+                  <Text style={styles.addLabel}>Note:</Text>
+                  <TextInput underlineColorAndroid='transparent' 
+                    style={styles.addTextinput}  onChangeText={(text)=>this.setState({note: text})}/>
+                </View>
               </ScrollView>
 
               <View style={styles.addRowView}>
-                <TouchableOpacity onPress={()=>this.setState({addmodalVisible: false})} style={[styles.modalButtonView,{backgroundColor: 'red'}]}>
+                <TouchableOpacity onPress={()=>this.setState({addmodalVisible: false})} 
+                  style={[styles.modalButtonView,{backgroundColor: 'red'}]}>
                   <Text style={styles.modalButton}>
                     Cancel
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={()=>this.addContact()} style={[styles.modalButtonView,{backgroundColor: 'green'}]}>
+                <TouchableOpacity onPress={()=>this.addContact()} 
+                  style={[styles.modalButtonView,{backgroundColor: 'green'}]}>
                   <Text style={styles.modalButton}>
                     Done
                   </Text>
@@ -671,12 +675,15 @@ emailbuttonjson = emailbuttonarray.map(function(item){
               <ScrollView showsVerticalScrollIndicator={false} style={{flex:1}}>
                 <View style={styles.addRowView}>
                   <Text style={styles.addLabel}>FamilyName</Text>
-                  <TextInput underlineColorAndroid='transparent' style={styles.addTextinput} onChangeText={(text)=>this.setState({familyName: text})} value={this.state.familyName}/>
+                  <TextInput underlineColorAndroid='transparent' style={styles.addTextinput} 
+                    onChangeText={(text)=>this.setState({familyName: text})} value={this.state.familyName}/>
                 </View>
                 <View style={styles.addRowView}>
                   <Text style={styles.addLabel}>GivenName</Text>
-                  <TextInput underlineColorAndroid='transparent' style={styles.addTextinput}  onChangeText={(text)=>this.setState({givenName: text})}  value={this.state.givenName}/>
+                  <TextInput underlineColorAndroid='transparent' style={styles.addTextinput}  
+                    onChangeText={(text)=>this.setState({givenName: text})}  value={this.state.givenName}/>
                 </View>
+                <Text style={styles.phonenumbers}>Phone Numbers:</Text>
 
                 {phonejson}
 
@@ -686,6 +693,7 @@ emailbuttonjson = emailbuttonarray.map(function(item){
                   </View>
                   <Text style={styles.phone}>add phone</Text>
                 </TouchableOpacity>
+                <Text style={styles.phonenumbers}>Emails:</Text>
 
                 {emailjson}
                 <TouchableOpacity onPress={()=>this.inserteditEmailButton()} style={styles.addbutton}>
@@ -694,15 +702,22 @@ emailbuttonjson = emailbuttonarray.map(function(item){
                   </View>
                   <Text style={styles.phone}>add email</Text>
                 </TouchableOpacity>
+                <View style={[styles.addRowView,{marginTop:20}]}>
+                  <Text style={styles.addLabel}>Note:</Text>
+                  <TextInput underlineColorAndroid='transparent' 
+                    style={styles.addTextinput}  onChangeText={(text)=>this.setState({note: text})} value={this.state.note}/>
+                </View>
               </ScrollView>
 
               <View style={styles.addRowView}>
-                <TouchableOpacity onPress={()=>this.setState({editmodalVisible: false})} style={[styles.modalButtonView,{backgroundColor: 'red'}]}>
+                <TouchableOpacity onPress={()=>this.setState({editmodalVisible: false})} 
+                  style={[styles.modalButtonView,{backgroundColor: 'red'}]}>
                   <Text style={styles.modalButton}>
                     Cancel
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={()=>this.editContact()} style={[styles.modalButtonView,{backgroundColor: 'green'}]}>
+                <TouchableOpacity onPress={()=>this.editContact()} 
+                  style={[styles.modalButtonView,{backgroundColor: 'green'}]}>
                   <Text style={styles.modalButton}>
                     Done
                   </Text>
@@ -718,7 +733,8 @@ emailbuttonjson = emailbuttonarray.map(function(item){
         <Text style={styles.title}>Contacts</Text>
         <View style={styles.rowView}>
           <Text style={styles.group} >Group</Text>
-          <TextInput underlineColorAndroid='transparent' placeholder= 'search' onChangeText= {(text)=>this.search(text)} style={styles.textinput}/>
+          <TextInput underlineColorAndroid='transparent' placeholder= 'search' 
+            onChangeText= {(text)=>this.search(text)} style={styles.textinput}/>
           <TouchableOpacity 
             onPress={()=>{this.setState({addmodalVisible:true})}} 
             style={styles.plusbutton}>

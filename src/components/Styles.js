@@ -189,7 +189,7 @@ export default StyleSheet.create({
     fontSize: Metrics.unitFontSize*20,
     fontWeight:'600',
     color: 'white',
-    marginTop:-3
+    lineHeight: Metrics.unitFontSize*20,
   },
   phone: {
     fontSize: Metrics.unitFontSize*14,
@@ -205,7 +205,9 @@ export default StyleSheet.create({
     marginRight:5
   },
   deleteText:{
-    fontSize: 14,
-    color: 'white'
+    fontSize: Metrics.unitFontSize*20,
+    color: 'white',
+    lineHeight: Metrics.unitFontSize*20,
+    fontWeight:'600',
   }
 })
