@@ -44,21 +44,23 @@ export default class App extends Component<Props> {
   componentDidMount() {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
     this.contactList(this.state.filter)
+  
+    
+
   }
 
   componentWillUnmount() {
     BackHandler.removeEventListener('hardwareBackPress', this.handleBackButton);
   }
 
+   componentWillBlur() {
+         alert('adsf')
+    }
+
   handleBackButton() {
     return true;
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState(oldstate => ({
-      updated: !oldstate.updated,
-    }));
-  }
 
   editContact(item){
      
@@ -102,15 +104,16 @@ export default class App extends Component<Props> {
   addContact(){
     var newPerson = {
       emailAddresses: [{
-        label: "",
-        email: "",
+        label: "work",
+        email: "mrniet@example.com",
       }],
-      familyName: "",
-      givenName: "",
+      familyName: "Nietzsche",
+      givenName: "Friedrich",
     }
-
-    Contacts.openContactForm(newPerson, (err) => { /*...*/ })
-    this.contactList(this.state.filter)
+     
+    Contacts.openContactForm(newPerson, (err) => { alert(err) })
+    
+    this.search(this.state.filter)
   }
 
   search(text){
