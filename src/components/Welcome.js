@@ -81,7 +81,7 @@ export default class App extends Component<Props> {
         if(err === 'denied'){
           // error
         } else {
-          alert(JSON.stringify(contacts[0]))
+          //alert(JSON.stringify(contacts[0]))
           data = contacts
           keys = {"keys": this.state.keys}
           data.push(keys)
@@ -671,7 +671,7 @@ emailbuttonjson = emailbuttonarray.map(function(item){
             alert('Modal has been closed.');
           }}>
           <View style={{flex:1, backgroundColor:'rgba(0,0,0,0.5)', paddingHorizontal: 20, paddingVertical:30}}>
-            <View style={{flex:1, backgroundColor:'white', paddingVertical: 20}}>
+            <View style={{flex:1, backgroundColor:'white', paddingVertical: 20, borderRadius: 5}}>
               <ScrollView showsVerticalScrollIndicator={false} style={{flex:1}}>
                 <View style={styles.addRowView}>
                   <Text style={styles.addLabel}>FamilyName</Text>
