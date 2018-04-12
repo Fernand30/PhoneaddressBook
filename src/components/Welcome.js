@@ -27,6 +27,8 @@ import Swipeout from 'react-native-swipeout';
 import styles from './Styles'
 
 import Contacts from 'react-native-contacts'
+import Geocoder from 'react-native-geocoder';
+
 
 type Props = {};
 export default class App extends Component<Props> {
@@ -60,19 +62,46 @@ export default class App extends Component<Props> {
       state:'',
       city:'',
       street:'',
-      date: new Date()
+      date: new Date(),
+      currentLocation: ''
     }
   }
 
   componentDidMount() {
+    Geocoder.fallbackToGoogle('AIzaSyBDlXDjhHSBgI6etr234bO23X6Dc1QYJ7I');
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
     this.contactList(this.state.filter)
     this.props.navigation.addListener('didFocus', (status: boolean) => {
 
     });
     this._interval = 0
+
+    this.watchID = navigator.geolocation.watchPosition((position) => {
+      
+      longitude = position.coords.longitude
+      latitude = position.coords.latitude
+      var NY = {
+        lat: latitude,
+        lng: longitude
+      };
+
+      Geocoder.geocodePosition(NY).then(res => {
+        currentLocation = res[0]['formattedAddress']
+        //alert(JSON.stringify(res[1]))
+        this.setState({
+          country: res[0].country,
+          state: res[0].locality,
+          city: '',
+          street: res[0].streetName+" "+res[0].streetNumber,
+        })
+      }).catch(err => alert(err)) 
+    });
+
   }
 
+  componentWillUnmount() {
+    navigator.geolocation.clearWatch(this.watchID);
+  }
   
   handleBackButton() {
     return true;
@@ -690,22 +719,22 @@ emailbuttonjson = emailbuttonarray.map(function(item,index){
                     <View style={styles.locationView}>
                       <Text style={styles.country}>Country:</Text>
                       <TextInput underlineColorAndroid='transparent' 
-                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({country: text})}/>
+                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({country: text})} value={this.state.country}/>
                     </View>
                     <View style={styles.locationView}>
                       <Text style={styles.country}>State:</Text>
                       <TextInput underlineColorAndroid='transparent' 
-                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({state: text})}/>
+                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({state: text})} value={this.state.state}/>
                     </View>
                     <View style={styles.locationView}>
                       <Text style={styles.country}>City:</Text>
                       <TextInput underlineColorAndroid='transparent' 
-                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({city: text})}/>
+                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({city: text})} value={this.state.city}/>
                     </View>
                     <View style={styles.locationView}>
                       <Text style={styles.country}>Street:</Text>
                       <TextInput underlineColorAndroid='transparent' 
-                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({street: text})}/>
+                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({street: text})} value={this.state.street}/>
                     </View>
                   </View>
                 </View>
