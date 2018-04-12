@@ -131,10 +131,25 @@ export default StyleSheet.create({
   	paddingHorizontal: Metrics.unitMargin*3,
   	marginBottom: 5	
   },
+  locationView:{
+    flexDirection: 'row',
+    alignItems:'center',
+    justifyContent: 'space-between',
+    marginBottom: 5 
+  },
   addLabel:{
   	fontSize: Metrics.unitFontSize*15,
   	marginRight: 5,
   	width: Metrics.unitMargin*25
+  },
+  addLabel1:{
+    fontSize: Metrics.unitFontSize*15,
+    marginRight: 5,
+    width: Metrics.unitMargin*15
+  },
+  country:{
+    width: Metrics.unitMargin*13,
+    fontSize: Metrics.unitFontSize*14
   },
   phonenumbers:{
     fontSize: Metrics.unitFontSize*15,

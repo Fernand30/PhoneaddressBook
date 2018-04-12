@@ -19,11 +19,10 @@ import {
   BackHandler,
   Modal,
   Alert,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
 } from 'react-native';
-
+import DatePicker from 'react-native-datepicker'
 import Swipeout from 'react-native-swipeout';
-
 
 import styles from './Styles'
 
@@ -48,15 +47,20 @@ export default class App extends Component<Props> {
       givenName : '',
       buttonarray:[0],
       emailbuttonarray:[0],
-      labels:[],
+      labels:['mobile'],
       numbers:[],
       phonearray:[],
       emailarray:[],
       phoneNumbers:[],
-      emaillabels: [],
+      emaillabels: ['personal'],
       emailnumbers: [],
       emailAddresses:[],
-      note:''
+      note:'',
+      country:'',
+      state:'',
+      city:'',
+      street:'',
+      date: new Date()
     }
   }
 
@@ -64,7 +68,7 @@ export default class App extends Component<Props> {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
     this.contactList(this.state.filter)
     this.props.navigation.addListener('didFocus', (status: boolean) => {
-      
+
     });
     this._interval = 0
   }
@@ -80,6 +84,7 @@ export default class App extends Component<Props> {
       Contacts.getAll((err, contacts) => {
         if(err === 'denied'){
           // error
+          alert(err)
         } else {
           //alert(JSON.stringify(contacts[0]))
           data = contacts
@@ -182,16 +187,16 @@ export default class App extends Component<Props> {
       givenName:'', 
       phoneNumbers:[], 
       emailAddresses:[],
-      labels:[],
+      labels:['mobile'],
       numbers:[],
-      emaillabels:[], 
+      emaillabels:['personal'], 
       emailnumbers:[],
-      buttonarray:[0],
-      emailarray: [0],
+      emailarray: [],
       buttonarray:[0],
       emailbuttonarray:[0],
       note:''
     })
+    this.contactList(this.state.filter)
   }
 
   expend(key){
@@ -251,6 +256,7 @@ export default class App extends Component<Props> {
   }
 
   addContact(){   
+
     if(this.state.familyName==''||this.state.givenName==''){
       alert('Please fill all fields.')
       return;
@@ -266,15 +272,27 @@ export default class App extends Component<Props> {
       if(!emailAddresses[i]) emailAddresses.splice(i,1)
       if(emailAddresses[i].label == '' && emailAddresses[i].email == '') emailAddresses.splice(i,1)
     }
+    location = []
+    country = this.state.country
+    state = this.state.state
+    city = this.state.city
+    street = this.state.street
+    location[0] = {state:state,city:city,postCode:'',label:'',region:'',country:country,street:street}
 
+    date=  this.state.date
+    splitDate = date.split('-')
+
+    
     var newPerson = {
       emailAddresses: emailAddresses,
       familyName: this.state.familyName,
       givenName: this.state.givenName,
       phoneNumbers:phoneNumbers,
-      note: this.state.note
+      jobTitle: this.state.note,
+      postalAddresses: location,
+      birthday: {day:splitDate[2], month: splitDate[1], year:splitDate[0]}
     }
-
+    //alert(JSON.stringify(this.state.date))
     Contacts.addContact(newPerson, (err)=>{ })
     this.search(this.state.filter)
     this.clear()
@@ -300,12 +318,24 @@ export default class App extends Component<Props> {
       if(emailAddresses[i].label == '' && emailAddresses[i].email == '') emailAddresses.splice(i,1)
     }
 
+    location = []
+    country = this.state.country
+    state = this.state.state
+    city = this.state.city
+    street = this.state.street
+    location[0] = {state:state,city:city,postCode:'',label:'',region:'',country:country,street:street}
+
+    date=  this.state.date
+    splitDate = date.split('-')
+
     item = this.state.item
     item.emailAddresses = emailAddresses
     item.phoneNumbers = phoneNumbers
     item.givenName = this.state.givenName
     item.familyName = this.state.familyName
-    item.note = this.state.note
+    item.jobTitle = this.state.note
+    item.postalAddresses = location
+    item.birthday = {day:splitDate[2], month: splitDate[1], year:splitDate[0]}
     
     Contacts.updateContact(item, (err) => { /*...*/ })
     this.search(this.state.filter)
@@ -313,7 +343,7 @@ export default class App extends Component<Props> {
   }
 
   editModal(item){
-    //alert(JSON.stringify(item))
+    //alert(JSON.stringify(item.postalAddresses))
     phoneNumbers = item.phoneNumbers
     numbers=[]
     labels=[]
@@ -330,7 +360,9 @@ export default class App extends Component<Props> {
       emaillabels.push(emailAddresses[i].label)
     }
 
-
+    location = item.postalAddresses
+    date = item.birthday
+    
     this.setState({
       editmodalVisible: true, 
       item: item,
@@ -342,7 +374,12 @@ export default class App extends Component<Props> {
       numbers: numbers,
       emaillabels: emaillabels,
       emailnumbers: emailnumbers,
-      note: item.note
+      note: item.jobTitle,
+      country: location[0].country,
+      state: location[0].state,
+      city: location[0].city,
+      street: location[0].street,
+      date: date.year+'-'+date.month+'-'+date.day
     })
   }
 
@@ -376,26 +413,30 @@ export default class App extends Component<Props> {
   }
 
   insertButton(){
+    labels = this.state.labels
+    labels.push('mobile')
     buttonarray = this.state.buttonarray
     buttonarray.push(buttonarray.length)
-    this.setState({ buttonarray: buttonarray})
+    this.setState({ buttonarray: buttonarray, labels: labels})
   }
 
   insertemailButton(){
+    emaillabels = this.state.emaillabels
+    emaillabels.push('personal')
     emailbuttonarray = this.state.emailbuttonarray
     emailbuttonarray.push(emailbuttonarray.length)
-    this.setState({ emailbuttonarray: emailbuttonarray})
+    this.setState({ emailbuttonarray: emailbuttonarray, emaillabels: emaillabels})
   }
 
   inserteditButton(){
     phoneNumbers = this.state.phoneNumbers
-    phoneNumbers.push({label:'', number:''})
+    phoneNumbers.push({label:'mobile', number:''})
     this.setState({ phoneNumbers: phoneNumbers})
   }
 
   inserteditEmailButton(){
     emailAddresses = this.state.emailAddresses
-    emailAddresses.push({label:'', email:''})
+    emailAddresses.push({label:'personal', email:''})
     this.setState({ emailAddresses: emailAddresses})
   }
 
@@ -443,20 +484,24 @@ export default class App extends Component<Props> {
     this.setState({emailAddresses, emailAddresses, emailnumbers: emailnumbers})
   }
 
-  deletebutton(item){
+  deletebutton(item,index){
     buttonarray = this.state.buttonarray;
     phoneNumbers = this.state.phoneNumbers
-    phoneNumbers.splice(item, 1)
-    buttonarray.splice(item,1)
-    this.setState({ buttonarray: buttonarray, phoneNumbers: phoneNumbers})
+    labels = this.state.labels
+    phoneNumbers.splice(index, 1)
+    buttonarray.splice(index,1)
+    labels.splice(index,1)
+    this.setState({ buttonarray: buttonarray, phoneNumbers: phoneNumbers, labels:labels})
   }
 
-  emaildeletebutton(item){
+  emaildeletebutton(item,index){
+    emaillabels = this.state.emaillabels
     emailbuttonarray = this.state.emailbuttonarray;
     emailAddresses = this.state.emailAddresses
-    emailAddresses.splice(item, 1)
-    emailbuttonarray.splice(item,1)
-    this.setState({ emailbuttonarray: emailbuttonarray, emailAddresses: emailAddresses})
+    emailAddresses.splice(index, 1)
+    emailbuttonarray.splice(index,1)
+    emaillabels.splice(index,1)
+    this.setState({ emailbuttonarray: emailbuttonarray, emailAddresses: emailAddresses, emaillabels: emaillabels})
   }
     
  //////////////////////////////////////////////////////////////////////
@@ -464,6 +509,8 @@ export default class App extends Component<Props> {
   render() {
     data = this.state.data
     keys = this.state.keys
+    labels = this.state.labels
+    emaillabels = this.state.emaillabels
     buttonarray = this.state.buttonarray
     emailbuttonarray = this.state.emailbuttonarray
     item = this.state.item
@@ -517,16 +564,16 @@ export default class App extends Component<Props> {
 
     
 
-buttonjson = buttonarray.map(function(item){
+buttonjson = buttonarray.map(function(item,index){
  
   return(
     <View style={styles.addRowView} key={item}>
-      <TouchableOpacity onPress={()=>that.deletebutton(item)} style={styles.delete}>
+      <TouchableOpacity onPress={()=>that.deletebutton(item,index)} style={styles.delete}>
         <Text style={styles.deleteText}>-</Text>
       </TouchableOpacity>
       <TextInput 
         underlineColorAndroid='transparent' style={styles.labelTextinput}  
-        onChangeText={(text)=>that.addPhoneLabel(item,text)}/>
+        onChangeText={(text)=>that.addPhoneLabel(item,text)} value={labels[item]}/>
       <TextInput keyboardType='numeric' returnKeyType="done" 
         underlineColorAndroid='transparent' style={styles.addTextinput}  
         onChangeText={(text)=>that.addPhoneNumber(item,text)}/>
@@ -534,16 +581,16 @@ buttonjson = buttonarray.map(function(item){
   )
 })
 
-emailbuttonjson = emailbuttonarray.map(function(item){
+emailbuttonjson = emailbuttonarray.map(function(item,index){
  
   return(
     <View style={styles.addRowView} key={item}>
-      <TouchableOpacity onPress={()=>that.emaildeletebutton(item)} style={styles.delete}>
+      <TouchableOpacity onPress={()=>that.emaildeletebutton(item,index)} style={styles.delete}>
         <Text style={styles.deleteText}>-</Text>
       </TouchableOpacity>
       <TextInput 
         underlineColorAndroid='transparent' style={styles.labelTextinput}  
-        onChangeText={(text)=>that.addEmailLabel(item,text)}/>
+        onChangeText={(text)=>that.addEmailLabel(item,text)} value={emaillabels[item]}/>
       <TextInput
         underlineColorAndroid='transparent' style={styles.addTextinput}  
         onChangeText={(text)=>that.addEmailAddress(item,text)}/>
@@ -561,7 +608,7 @@ emailbuttonjson = emailbuttonarray.map(function(item){
       
       return(
         <View style={styles.addRowView} key={index}>
-          <TouchableOpacity onPress={()=>that.deletebutton(item)} style={styles.delete}>
+          <TouchableOpacity onPress={()=>that.deletebutton(item,index)} style={styles.delete}>
             <Text style={styles.deleteText}>-</Text>
           </TouchableOpacity>
           <TextInput 
@@ -583,7 +630,7 @@ emailbuttonjson = emailbuttonarray.map(function(item){
       
       return(
         <View style={styles.addRowView} key={index}>
-          <TouchableOpacity onPress={()=>that.emaildeletebutton(item)} style={styles.delete}>
+          <TouchableOpacity onPress={()=>that.emaildeletebutton(item,index)} style={styles.delete}>
             <Text style={styles.deleteText}>-</Text>
           </TouchableOpacity>
           <TextInput 
@@ -638,6 +685,54 @@ emailbuttonjson = emailbuttonarray.map(function(item){
                   <Text style={styles.phone}>add email</Text>
                 </TouchableOpacity>
                 <View style={[styles.addRowView,{marginTop:20}]}>
+                  <Text style={styles.addLabel1}>Location:</Text>
+                  <View style={{flex:1}}>
+                    <View style={styles.locationView}>
+                      <Text style={styles.country}>Country:</Text>
+                      <TextInput underlineColorAndroid='transparent' 
+                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({country: text})}/>
+                    </View>
+                    <View style={styles.locationView}>
+                      <Text style={styles.country}>State:</Text>
+                      <TextInput underlineColorAndroid='transparent' 
+                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({state: text})}/>
+                    </View>
+                    <View style={styles.locationView}>
+                      <Text style={styles.country}>City:</Text>
+                      <TextInput underlineColorAndroid='transparent' 
+                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({city: text})}/>
+                    </View>
+                    <View style={styles.locationView}>
+                      <Text style={styles.country}>Street:</Text>
+                      <TextInput underlineColorAndroid='transparent' 
+                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({street: text})}/>
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.rowView}>
+                  <Text style={styles.addLabel}>Date:</Text>
+                  <DatePicker
+                    style={{flex:1}}
+                    date={this.state.date}
+                    mode="date"
+                    placeholder="select date"
+                    format="YYYY-MM-DD"
+                    minDate="2016-05-01"
+                    maxDate="2086-06-01"
+                    confirmBtnText="Confirm"
+                    cancelBtnText="Cancel"
+                    customStyles={{
+                      dateIcon: {
+                        width: 0,
+                        height:0
+                      },
+                      dateInput: {}
+                      // ... You can check the source to find the other keys.
+                    }}
+                    onDateChange={(date) => {this.setState({date: date})}}
+                  />
+                </View>
+                <View style={[styles.addRowView,{marginTop:20}]}>
                   <Text style={styles.addLabel}>Note:</Text>
                   <TextInput underlineColorAndroid='transparent' 
                     style={styles.addTextinput}  onChangeText={(text)=>this.setState({note: text})}/>
@@ -645,7 +740,7 @@ emailbuttonjson = emailbuttonarray.map(function(item){
               </ScrollView>
 
               <View style={styles.addRowView}>
-                <TouchableOpacity onPress={()=>this.setState({addmodalVisible: false})} 
+                <TouchableOpacity onPress={()=>this.clear()} 
                   style={[styles.modalButtonView,{backgroundColor: 'red'}]}>
                   <Text style={styles.modalButton}>
                     Cancel
@@ -703,6 +798,54 @@ emailbuttonjson = emailbuttonarray.map(function(item){
                   <Text style={styles.phone}>add email</Text>
                 </TouchableOpacity>
                 <View style={[styles.addRowView,{marginTop:20}]}>
+                  <Text style={styles.addLabel1}>Location:</Text>
+                  <View style={{flex:1}}>
+                    <View style={styles.locationView}>
+                      <Text style={styles.country}>Country:</Text>
+                      <TextInput underlineColorAndroid='transparent' 
+                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({country: text})} value={this.state.country}/>
+                    </View>
+                    <View style={styles.locationView}>
+                      <Text style={styles.country}>State:</Text>
+                      <TextInput underlineColorAndroid='transparent' 
+                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({state: text})} value={this.state.state}/>
+                    </View>
+                    <View style={styles.locationView}>
+                      <Text style={styles.country}>City:</Text>
+                      <TextInput underlineColorAndroid='transparent' 
+                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({city: text})} value={this.state.city}/>
+                    </View>
+                    <View style={styles.locationView}>
+                      <Text style={styles.country}>Street:</Text>
+                      <TextInput underlineColorAndroid='transparent' 
+                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({street: text})} value={this.state.street}/>
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.rowView}>
+                  <Text style={styles.addLabel}>Date:</Text>
+                  <DatePicker
+                    style={{flex:1}}
+                    date={this.state.date}
+                    mode="date"
+                    placeholder="select date"
+                    format="YYYY-MM-DD"
+                    minDate="2016-05-01"
+                    maxDate="2086-06-01"
+                    confirmBtnText="Confirm"
+                    cancelBtnText="Cancel"
+                    customStyles={{
+                      dateIcon: {
+                        width: 0,
+                        height:0
+                      },
+                      dateInput: {}
+                      // ... You can check the source to find the other keys.
+                    }}
+                    onDateChange={(date) => {this.setState({date: date})}}
+                  />
+                </View>
+                <View style={[styles.addRowView,{marginTop:20}]}>
                   <Text style={styles.addLabel}>Note:</Text>
                   <TextInput underlineColorAndroid='transparent' 
                     style={styles.addTextinput}  onChangeText={(text)=>this.setState({note: text})} value={this.state.note}/>
@@ -710,7 +853,7 @@ emailbuttonjson = emailbuttonarray.map(function(item){
               </ScrollView>
 
               <View style={styles.addRowView}>
-                <TouchableOpacity onPress={()=>this.setState({editmodalVisible: false})} 
+                <TouchableOpacity onPress={()=>this.clear()} 
                   style={[styles.modalButtonView,{backgroundColor: 'red'}]}>
                   <Text style={styles.modalButton}>
                     Cancel
