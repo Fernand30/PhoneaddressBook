@@ -8,7 +8,6 @@ import React, { Component } from 'react';
 import {
   Platform,
   StyleSheet,
-  Text,
   View,
   TouchableOpacity,
   FlatList,
@@ -28,6 +27,7 @@ import styles from './Styles'
 
 import Contacts from 'react-native-contacts'
 import Geocoder from 'react-native-geocoder';
+import { Container, Header, Content, Button, Text, Icon } from 'native-base';
 
 
 type Props = {};
@@ -63,7 +63,8 @@ export default class App extends Component<Props> {
       city:'',
       street:'',
       date: new Date(),
-      currentLocation: ''
+      currentLocation: '',
+      asc: true,
     }
   }
 
@@ -532,11 +533,67 @@ export default class App extends Component<Props> {
     emaillabels.splice(index,1)
     this.setState({ emailbuttonarray: emailbuttonarray, emailAddresses: emailAddresses, emaillabels: emaillabels})
   }
-    
+
+  order(){
+    data = this.state.data
+    if(this.state.asc)
+      data.sort(this.compareASC)   
+    else
+      data.sort(this.compareDESC)
+    this.setState(
+      {
+        asc: !this.state.asc,
+        data: data,
+      }
+    )
+  }
+
+  compareASC(a,b) {
+    if (a.givenName < b.givenName)
+      return -1;
+    if (a.givenName > b.givenName)
+      return 1;
+    return 0;
+  }
+
+  compareDESC(a,b) {
+    if (a.givenName < b.givenName)
+      return 1;
+    if (a.givenName > b.givenName)
+      return -1;
+    return 0;
+  }
+
+  copy(o) {
+    var output, v, key;
+    output = Array.isArray(o) ? [] : {};
+    for (key in o) {
+        v = o[key];
+        output[key] = (typeof v === "object") ? this.copy(v) : v;
+    }
+    return output;
+  }
+
+  groupbyName(_contacts){
+    var contacts = this.copy(_contacts)
+    var groupedContacts = {}
+    contacts.forEach(element => {
+      var name = element.givenName + ' ' + element.familyName
+      if (groupedContacts[name] == null) {
+        groupedContacts[name] = this.copy(element);
+        groupedContacts[name].phoneNumbers = [];
+      }
+
+      var phoneNumbers = groupedContacts[name].phoneNumbers.concat(element.phoneNumbers);
+      groupedContacts[name].phoneNumbers = phoneNumbers;
+
+    });
+    return Object.values(groupedContacts)
+  }
  //////////////////////////////////////////////////////////////////////
      
   render() {
-    data = this.state.data
+    data = this.groupbyName(this.state.data)
     keys = this.state.keys
     labels = this.state.labels
     emaillabels = this.state.emaillabels
@@ -548,6 +605,8 @@ export default class App extends Component<Props> {
     phonejson  = <View/>
     emailjson  = <View/>
     that = this
+
+    console.log(data)
 
     jsonData = data.map(function(items) { 
 
@@ -593,86 +652,83 @@ export default class App extends Component<Props> {
 
     
 
-buttonjson = buttonarray.map(function(item,index){
- 
-  return(
-    <View style={styles.addRowView} key={item}>
-      <TouchableOpacity onPress={()=>that.deletebutton(item,index)} style={styles.delete}>
-        <Text style={styles.deleteText}>-</Text>
-      </TouchableOpacity>
-      <TextInput 
-        underlineColorAndroid='transparent' style={styles.labelTextinput}  
-        onChangeText={(text)=>that.addPhoneLabel(item,text)} value={labels[item]}/>
-      <TextInput keyboardType='numeric' returnKeyType="done" 
-        underlineColorAndroid='transparent' style={styles.addTextinput}  
-        onChangeText={(text)=>that.addPhoneNumber(item,text)}/>
-    </View>
-  )
-})
-
-emailbuttonjson = emailbuttonarray.map(function(item,index){
- 
-  return(
-    <View style={styles.addRowView} key={item}>
-      <TouchableOpacity onPress={()=>that.emaildeletebutton(item,index)} style={styles.delete}>
-        <Text style={styles.deleteText}>-</Text>
-      </TouchableOpacity>
-      <TextInput 
-        underlineColorAndroid='transparent' style={styles.labelTextinput}  
-        onChangeText={(text)=>that.addEmailLabel(item,text)} value={emaillabels[item]}/>
-      <TextInput
-        underlineColorAndroid='transparent' style={styles.addTextinput}  
-        onChangeText={(text)=>that.addEmailAddress(item,text)}/>
-    </View>
-  )
-})
-
-
-  if(phonearray)
-    phonejson = phonearray.map(function(item,index){
-      labels = [];
-      numbers = [];
-      labels[index] = item.label
-      numbers[index] = item.number
-      
+    buttonjson = buttonarray.map(function(item,index){
       return(
-        <View style={styles.addRowView} key={index}>
+        <View style={styles.addRowView} key={item}>
           <TouchableOpacity onPress={()=>that.deletebutton(item,index)} style={styles.delete}>
             <Text style={styles.deleteText}>-</Text>
           </TouchableOpacity>
           <TextInput 
             underlineColorAndroid='transparent' style={styles.labelTextinput}  
-            onChangeText={(text)=>that.addPhoneLabel(index,text)} value={item.label}/>
+            onChangeText={(text)=>that.addPhoneLabel(item,text)} value={labels[item]}/>
           <TextInput keyboardType='numeric' returnKeyType="done" 
             underlineColorAndroid='transparent' style={styles.addTextinput}  
-            onChangeText={(text)=>that.addPhoneNumber(index,text)} value={item.number}/>
+            onChangeText={(text)=>that.addPhoneNumber(item,text)}/>
         </View>
       )
     })
 
-  if(emailarray)
-    emailjson = emailarray.map(function(item,index){
-      emaillabels = [];
-      emailnumbers = [];
-      emaillabels[index] = item.label
-      emailnumbers[index] = item.email
-      
+    emailbuttonjson = emailbuttonarray.map(function(item,index){
       return(
-        <View style={styles.addRowView} key={index}>
+        <View style={styles.addRowView} key={item}>
           <TouchableOpacity onPress={()=>that.emaildeletebutton(item,index)} style={styles.delete}>
             <Text style={styles.deleteText}>-</Text>
           </TouchableOpacity>
           <TextInput 
             underlineColorAndroid='transparent' style={styles.labelTextinput}  
-            onChangeText={(text)=>that.addEmailLabel(index,text)} value={item.label}/>
-          <TextInput returnKeyType="done" 
+            onChangeText={(text)=>that.addEmailLabel(item,text)} value={emaillabels[item]}/>
+          <TextInput
             underlineColorAndroid='transparent' style={styles.addTextinput}  
-            onChangeText={(text)=>that.addEmailAddress(index,text)} value={item.email}/>
+            onChangeText={(text)=>that.addEmailAddress(item,text)}/>
         </View>
       )
     })
 
-    addModal =
+    if(phonearray)
+      phonejson = phonearray.map(function(item,index){
+        labels = [];
+        numbers = [];
+        labels[index] = item.label
+        numbers[index] = item.number
+        
+        return(
+          <View style={styles.addRowView} key={index}>
+            <TouchableOpacity onPress={()=>that.deletebutton(item,index)} style={styles.delete}>
+              <Text style={styles.deleteText}>-</Text>
+            </TouchableOpacity>
+            <TextInput 
+              underlineColorAndroid='transparent' style={styles.labelTextinput}  
+              onChangeText={(text)=>that.addPhoneLabel(index,text)} value={item.label}/>
+            <TextInput keyboardType='numeric' returnKeyType="done" 
+              underlineColorAndroid='transparent' style={styles.addTextinput}  
+              onChangeText={(text)=>that.addPhoneNumber(index,text)} value={item.number}/>
+          </View>
+        )
+      })
+
+    if(emailarray)
+      emailjson = emailarray.map(function(item,index){
+        emaillabels = [];
+        emailnumbers = [];
+        emaillabels[index] = item.label
+        emailnumbers[index] = item.email
+        
+        return(
+          <View style={styles.addRowView} key={index}>
+            <TouchableOpacity onPress={()=>that.emaildeletebutton(item,index)} style={styles.delete}>
+              <Text style={styles.deleteText}>-</Text>
+            </TouchableOpacity>
+            <TextInput 
+              underlineColorAndroid='transparent' style={styles.labelTextinput}  
+              onChangeText={(text)=>that.addEmailLabel(index,text)} value={item.label}/>
+            <TextInput returnKeyType="done" 
+              underlineColorAndroid='transparent' style={styles.addTextinput}  
+              onChangeText={(text)=>that.addEmailAddress(index,text)} value={item.email}/>
+          </View>
+        )
+      })
+
+    var addModal =
       <Modal
           animationType="slide"
           transparent={true}
@@ -786,143 +842,160 @@ emailbuttonjson = emailbuttonarray.map(function(item,index){
           </View>
       </Modal>   
 
-      editModal =
+    var editModal =
       <Modal
-          animationType="slide"
-          transparent={true}
-          visible={this.state.editmodalVisible}
-          onRequestClose={() => {
-            alert('Modal has been closed.');
-          }}>
-          <View style={{flex:1, backgroundColor:'rgba(0,0,0,0.5)', paddingHorizontal: 20, paddingVertical:30}}>
-            <View style={{flex:1, backgroundColor:'white', paddingVertical: 20, borderRadius: 5}}>
-              <ScrollView showsVerticalScrollIndicator={false} style={{flex:1}}>
-                <View style={styles.addRowView}>
-                  <Text style={styles.addLabel}>FamilyName</Text>
-                  <TextInput underlineColorAndroid='transparent' style={styles.addTextinput} 
-                    onChangeText={(text)=>this.setState({familyName: text})} value={this.state.familyName}/>
-                </View>
-                <View style={styles.addRowView}>
-                  <Text style={styles.addLabel}>GivenName</Text>
-                  <TextInput underlineColorAndroid='transparent' style={styles.addTextinput}  
-                    onChangeText={(text)=>this.setState({givenName: text})}  value={this.state.givenName}/>
-                </View>
-                <Text style={styles.phonenumbers}>Phone Numbers:</Text>
-
-                {phonejson}
-
-                <TouchableOpacity onPress={()=>this.inserteditButton()} style={styles.addbutton}>
-                  <View style={styles.circleView}>
-                    <Text style={styles.circleText}>+</Text>
-                  </View>
-                  <Text style={styles.phone}>add phone</Text>
-                </TouchableOpacity>
-                <Text style={styles.phonenumbers}>Emails:</Text>
-
-                {emailjson}
-                <TouchableOpacity onPress={()=>this.inserteditEmailButton()} style={styles.addbutton}>
-                  <View style={styles.circleView}>
-                    <Text style={styles.circleText}>+</Text>
-                  </View>
-                  <Text style={styles.phone}>add email</Text>
-                </TouchableOpacity>
-                <View style={[styles.addRowView,{marginTop:20}]}>
-                  <Text style={styles.addLabel1}>Location:</Text>
-                  <View style={{flex:1}}>
-                    <View style={styles.locationView}>
-                      <Text style={styles.country}>Country:</Text>
-                      <TextInput underlineColorAndroid='transparent' 
-                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({country: text})} value={this.state.country}/>
-                    </View>
-                    <View style={styles.locationView}>
-                      <Text style={styles.country}>State:</Text>
-                      <TextInput underlineColorAndroid='transparent' 
-                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({state: text})} value={this.state.state}/>
-                    </View>
-                    <View style={styles.locationView}>
-                      <Text style={styles.country}>City:</Text>
-                      <TextInput underlineColorAndroid='transparent' 
-                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({city: text})} value={this.state.city}/>
-                    </View>
-                    <View style={styles.locationView}>
-                      <Text style={styles.country}>Street:</Text>
-                      <TextInput underlineColorAndroid='transparent' 
-                                          style={styles.addTextinput}  onChangeText={(text)=>this.setState({street: text})} value={this.state.street}/>
-                    </View>
-                  </View>
-                </View>
-                <View style={styles.rowView}>
-                  <Text style={styles.addLabel}>Date:</Text>
-                  <DatePicker
-                    style={{flex:1}}
-                    date={this.state.date}
-                    mode="date"
-                    placeholder="select date"
-                    format="YYYY-MM-DD"
-                    minDate="2016-05-01"
-                    maxDate="2086-06-01"
-                    confirmBtnText="Confirm"
-                    cancelBtnText="Cancel"
-                    customStyles={{
-                      dateIcon: {
-                        width: 0,
-                        height:0
-                      },
-                      dateInput: {}
-                      // ... You can check the source to find the other keys.
-                    }}
-                    onDateChange={(date) => {this.setState({date: date})}}
-                  />
-                </View>
-                <View style={[styles.addRowView,{marginTop:20}]}>
-                  <Text style={styles.addLabel}>Note:</Text>
-                  <TextInput underlineColorAndroid='transparent' 
-                    style={styles.addTextinput}  onChangeText={(text)=>this.setState({note: text})} value={this.state.note}/>
-                </View>
-              </ScrollView>
-
+        animationType="slide"
+        transparent={true}
+        visible={this.state.editmodalVisible}
+        onRequestClose={() => {
+          alert('Modal has been closed.');
+        }}>
+        <View style={{flex:1, backgroundColor:'rgba(0,0,0,0.5)', paddingHorizontal: 20, paddingVertical:30}}>
+          <View style={{flex:1, backgroundColor:'white', paddingVertical: 20, borderRadius: 5}}>
+            <ScrollView showsVerticalScrollIndicator={false} style={{flex:1}}>
               <View style={styles.addRowView}>
-                <TouchableOpacity onPress={()=>this.clear()} 
-                  style={[styles.modalButtonView,{backgroundColor: 'red'}]}>
-                  <Text style={styles.modalButton}>
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={()=>this.editContact()} 
-                  style={[styles.modalButtonView,{backgroundColor: 'green'}]}>
-                  <Text style={styles.modalButton}>
-                    Done
-                  </Text>
-                </TouchableOpacity>
+                <Text style={styles.addLabel}>FamilyName</Text>
+                <TextInput underlineColorAndroid='transparent' style={styles.addTextinput} 
+                  onChangeText={(text)=>this.setState({familyName: text})} value={this.state.familyName}/>
               </View>
+              <View style={styles.addRowView}>
+                <Text style={styles.addLabel}>GivenName</Text>
+                <TextInput underlineColorAndroid='transparent' style={styles.addTextinput}  
+                  onChangeText={(text)=>this.setState({givenName: text})}  value={this.state.givenName}/>
+              </View>
+              <Text style={styles.phonenumbers}>Phone Numbers:</Text>
+
+              {phonejson}
+
+              <TouchableOpacity onPress={()=>this.inserteditButton()} style={styles.addbutton}>
+                <View style={styles.circleView}>
+                  <Text style={styles.circleText}>+</Text>
+                </View>
+                <Text style={styles.phone}>add phone</Text>
+              </TouchableOpacity>
+              <Text style={styles.phonenumbers}>Emails:</Text>
+
+              {emailjson}
+              <TouchableOpacity onPress={()=>this.inserteditEmailButton()} style={styles.addbutton}>
+                <View style={styles.circleView}>
+                  <Text style={styles.circleText}>+</Text>
+                </View>
+                <Text style={styles.phone}>add email</Text>
+              </TouchableOpacity>
+              <View style={[styles.addRowView,{marginTop:20}]}>
+                <Text style={styles.addLabel1}>Location:</Text>
+                <View style={{flex:1}}>
+                  <View style={styles.locationView}>
+                    <Text style={styles.country}>Country:</Text>
+                    <TextInput underlineColorAndroid='transparent' 
+                                        style={styles.addTextinput}  onChangeText={(text)=>this.setState({country: text})} value={this.state.country}/>
+                  </View>
+                  <View style={styles.locationView}>
+                    <Text style={styles.country}>State:</Text>
+                    <TextInput underlineColorAndroid='transparent' 
+                                        style={styles.addTextinput}  onChangeText={(text)=>this.setState({state: text})} value={this.state.state}/>
+                  </View>
+                  <View style={styles.locationView}>
+                    <Text style={styles.country}>City:</Text>
+                    <TextInput underlineColorAndroid='transparent' 
+                                        style={styles.addTextinput}  onChangeText={(text)=>this.setState({city: text})} value={this.state.city}/>
+                  </View>
+                  <View style={styles.locationView}>
+                    <Text style={styles.country}>Street:</Text>
+                    <TextInput underlineColorAndroid='transparent' 
+                                        style={styles.addTextinput}  onChangeText={(text)=>this.setState({street: text})} value={this.state.street}/>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.rowView}>
+                <Text style={styles.addLabel}>Date:</Text>
+                <DatePicker
+                  style={{flex:1}}
+                  date={this.state.date}
+                  mode="date"
+                  placeholder="select date"
+                  format="YYYY-MM-DD"
+                  minDate="2016-05-01"
+                  maxDate="2086-06-01"
+                  confirmBtnText="Confirm"
+                  cancelBtnText="Cancel"
+                  customStyles={{
+                    dateIcon: {
+                      width: 0,
+                      height:0
+                    },
+                    dateInput: {}
+                    // ... You can check the source to find the other keys.
+                  }}
+                  onDateChange={(date) => {this.setState({date: date})}}
+                />
+              </View>
+              <View style={[styles.addRowView,{marginTop:20}]}>
+                <Text style={styles.addLabel}>Note:</Text>
+                <TextInput underlineColorAndroid='transparent' 
+                  style={styles.addTextinput}  onChangeText={(text)=>this.setState({note: text})} value={this.state.note}/>
+              </View>
+            </ScrollView>
+
+            <View style={styles.addRowView}>
+              <TouchableOpacity onPress={()=>this.clear()} 
+                style={[styles.modalButtonView,{backgroundColor: 'red'}]}>
+                <Text style={styles.modalButton}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={()=>this.editContact()} 
+                style={[styles.modalButtonView,{backgroundColor: 'green'}]}>
+                <Text style={styles.modalButton}>
+                  Done
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
+        </View>
       </Modal>     
 
     return (
       <SafeAreaView style={styles.container1}>
-      <TouchableOpacity activeOpacity={1} onPress={()=>this.stopReload()} style={styles.container}>
-        <Text style={styles.title}>Contacts</Text>
-        <View style={styles.rowView}>
-          <Text style={styles.group} >Group</Text>
-          <TextInput underlineColorAndroid='transparent' placeholder= 'search' 
-            onChangeText= {(text)=>this.search(text)} style={styles.textinput}/>
-          <TouchableOpacity 
-            onPress={()=>{this.setState({addmodalVisible:true})}} 
-            style={styles.plusbutton}>
-            <Text style={styles.plus} >+</Text>
-          </TouchableOpacity>
-        </View>
-        
-        <View style={styles.lineView}/>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {jsonData}
-        </ScrollView>
-      </TouchableOpacity>
-      {addModal}
-      {editModal}
+        <TouchableOpacity activeOpacity={1} onPress={()=>this.stopReload()} style={styles.container}>
+          <Text style={styles.title}>Contacts</Text>
+          <View style={styles.rowView}>
+            {(this.state.asc)?
+            <Button transparent dark
+              onPress={this.order.bind(this)} 
+            >
+              <Icon name='arrow-up'/>
+            </Button>
+            :
+            <Button transparent dark
+              onPress={this.order.bind(this)} 
+            >
+              <Icon name='arrow-down'/>
+            </Button>
+            }
+            <Text style={styles.group} >Group</Text>
+            <TextInput 
+              underlineColorAndroid='transparent' 
+              placeholder='search' 
+              onChangeText={(text)=>this.search(text)} 
+              style={styles.textinput}/>
+            <TouchableOpacity 
+              onPress={()=>{this.setState({addmodalVisible:true})}} 
+              style={styles.plusbutton}>
+              <Text style={styles.plus} >+</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.lineView}/>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {jsonData}
+          </ScrollView>
+        </TouchableOpacity>
+        {addModal}
+        {editModal}
       </SafeAreaView>
     );
   }
 }
+
 
