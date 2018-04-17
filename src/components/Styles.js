@@ -79,13 +79,14 @@ export default StyleSheet.create({
   },
   textinput:{
     borderWidth: 1,
-    width: width*0.7,
+    // width: width*0.5,
     height: 30,
     alignSelf : 'center',
     marginVertical: 10,
     paddingVertical: 0,
     paddingLeft: 5,
-    fontSize: 16
+    fontSize: 16,
+    flex: 1,
   },
   rowView:{
     flexDirection:'row',
@@ -94,8 +95,8 @@ export default StyleSheet.create({
     marginHorizontal: 10
   },
   group:{
-    width: 40,
-    fontSize:14
+    fontSize:14, 
+    paddingHorizontal: 4, 
   },
   plusbutton:{
 
